@@ -30,9 +30,12 @@ while (true) {
   var choice = input.question("\t>> ");
 
   //validate choice
-  if (isNaN(choice)) {
+  if (isNaN(choice) || parseInt(choice) < 1 || parseInt(choice) > 4) {
     console.log("Please enter a valid input.");
     continue;
+  }
+  if (choice.trim() == "4") {
+    break;
   }
   if (choice.trim() != "1") {
     console.log("Sorry, work in progress!");
@@ -50,6 +53,5 @@ while (true) {
         `${ATTRIBUTES[attribute_index]}: ${memberList[member_index][attribute_index]}`
       );
     }
-    console.log();
   }
 }
