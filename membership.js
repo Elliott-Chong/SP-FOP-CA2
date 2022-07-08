@@ -24,6 +24,7 @@ var name = input.question("Please enter your name: ");
 while (true) {
   console.log();
 
+  // ask user for choice
   console.log(
     `Hi ${name}, please select your choice:\n\t1. Display all members' information\n\t2. Update points earned\n\t3. Statistics\n\t4. Exit`
   );
@@ -35,12 +36,14 @@ while (true) {
     continue;
   }
   if (choice.trim() == "4") {
+    console.log("Thank you & goodbye!");
     break;
   }
   if (choice.trim() != "1") {
     console.log("Sorry, work in progress!");
     continue;
   }
+  console.log();
 
   //the choice has to be 1 at this point
   for (var member_index = 0; member_index < memberList.length; member_index++) {
@@ -53,5 +56,6 @@ while (true) {
         `${ATTRIBUTES[attribute_index]}: ${memberList[member_index][attribute_index]}`
       );
     }
+    console.log();
   }
 }
