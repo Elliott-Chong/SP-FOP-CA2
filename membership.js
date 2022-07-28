@@ -20,12 +20,19 @@ todays_date = `${todays_date.getDate()} ${
   months[todays_date.getMonth()]
 } ${todays_date.getFullYear()}`;
 
+var membership_types = [
+  { name: "ruby", required_points: 0 },
+  { name: "gold", required_points: 500 },
+  { name: "platinum", required_points: 5000 },
+  { name: "diamond", required_points: 20000 },
+];
+
 // initializing 5 arrays, each corresponding to each member
-var member_1 = ["Leonardo", "Gold", "1 Dec 2019", "1 Jan 1980", "1400"];
-var member_2 = ["Catherine", "Ruby", "14 Jan 2020", "28 Oct 1985", "250"];
-var member_3 = ["Luther", "Gold", "29 Apr 2020", "16 Mar 1992", "3350"];
-var member_4 = ["Bruce", "Diamond", "3 Jun 2020", "18 Mar 1994", "40200"];
-var member_5 = ["Amy", "Ruby", "5 Jun 2020", "31 May 2000", "500"];
+var member_1 = ["Leonardo", "Gold", "1 Dec 2019", "1 Jan 1980", 1400];
+var member_2 = ["Catherine", "Ruby", "14 Jan 2020", "28 Oct 1985", 250];
+var member_3 = ["Luther", "Gold", "29 Apr 2020", "16 Mar 1992", 3350];
+var member_4 = ["Bruce", "Diamond", "3 Jun 2020", "18 Mar 1994", 40200];
+var member_5 = ["Amy", "Ruby", "5 Jun 2020", "31 May 2000", 500];
 
 // initializing an array to store all the members
 var memberList = [member_1, member_2, member_3, member_4, member_5];
@@ -58,10 +65,11 @@ class Member {
     this.points += points;
 
     // update membership_type if needed
-    if (this.points > 20000) this.membership_type = "Diamond";
-    else if (this.points > 5000) this.membership_type = "Platinum";
-    else if (this.points > 500) this.membership_type = "Gold";
-    else this.membership_type = "Ruby";
+    for (let membership_type of membership_types) {
+      if (this.points >= membership_type.required_points) {
+        this.membership_type = membership_type.name;
+      }
+    }
   }
 }
 
@@ -75,9 +83,14 @@ class MemberGroup {
   }
 
   deleteMember(member) {
-    this.members = this.members.filter(
-      (other_member) => other_member.name != member.name
-    );
+    // filter the members
+    var new_member_list = [];
+    for (let other_member of this.members) {
+      if (other_member.name.toLowerCase() !== member.name.toLowerCase()) {
+        new_member_list.push(other_member);
+      }
+    }
+    this.members = new_member_list;
   }
 
   findMember(name) {
@@ -95,7 +108,10 @@ class MemberGroup {
     let members = [];
     // get members of a specific membership type
     for (let i = 0; i < this.members.length; i++) {
-      if (this.members[i].membership_type.toLowerCase() == membership) {
+      if (
+        this.members[i].membership_type.toLowerCase() ==
+        membership.toLowerCase()
+      ) {
         members.push(this.members[i]);
       }
     }
@@ -158,7 +174,7 @@ while (true) {
 
   // ask user for choice
   console.log(
-    `Hi ${name}, please select your choice:\n\t1. Display all members' information\n\t2. Display member information\n\t3. Add new member\n\t4. Update points earned\n\t5. Statistics\n\t6. Exit\n\t--------Advanced Features---------\n\t7. Delete member`
+    `Hi ${name}, please select your choice:\n\t1. Display all members' information\n\t2. Display member information\n\t3. Add new member\n\t4. Update points earned\n\t5. Statistics\n\t6. Exit\n\t--------Advanced Features---------\n\t7. Delete member\n\t8. Add new membership type`
   );
   var choice = input.question("\t>> ");
 
@@ -167,7 +183,7 @@ while (true) {
     isNaN(choice) || // check if it's a number
     parseInt(choice) != choice || // check if it's an integer
     parseInt(choice) < 1 ||
-    parseInt(choice) > 7
+    parseInt(choice) > 8
   ) {
     console.log("Please enter a valid input.");
     continue;
@@ -221,6 +237,11 @@ while (true) {
       continue;
     } else {
       let amount_spent = input.question("Please enter amount spent: ");
+      if (isNaN(amount_spent)) {
+        console.log("Please enter a valid number.");
+        continue;
+      }
+      amount_spent = parseFloat(amount_spent);
       member.earnPoints(amount_spent);
     }
   } else if (choice == 5) {
@@ -250,12 +271,19 @@ while (true) {
 
       if (choice == 1) {
         // display names of certain type of members
-        var membership_types = ["gold", "ruby", "platinum", "diamond"];
+        // var membership_types = ["gold", "ruby", "platinum", "diamond"];
         let membership = input.question("\t\tEnter Membership Type: ");
         membership = membership.toLowerCase();
-        while (!membership_types.includes(membership)) {
+        while (
+          !membership_types.some(
+            (mt) => membership.toLowerCase() == mt.name.toLowerCase()
+          )
+        ) {
           console.log(
-            "\t\tPlease enter a valid membership type. (Gold, Ruby, Platinum or Diamond)"
+            "\t\tPlease enter a valid membership type. " +
+              "(" +
+              membership_types.map((mt) => mt.name) +
+              ")"
           );
           console.log();
           membership = input.question("\t\tEnter Membership Type: ");
@@ -282,7 +310,12 @@ while (true) {
         console.log("\t\tLowest member :", lowest_member.name);
       } else if (choice == 4) {
         // display number of members with each membership type
-        let res = { Ruby: 0, Gold: 0, Platinum: 0, Diamond: 0 };
+        // let res = { Ruby: 0, Gold: 0, Platinum: 0, Diamond: 0 };
+        let res = new Object();
+        for (let membership_type of membership_types) {
+          res[membership_type.name] = 0;
+        }
+
         for (let type in res) {
           res[type] = member_group.getMembersOfType(type).length;
         }
@@ -291,7 +324,10 @@ while (true) {
         }
       } else if (choice == 5) {
         // display total number of points for each membership type
-        let res = { Ruby: 0, Gold: 0, Platinum: 0, Diamond: 0 };
+        let res = new Object();
+        for (let membership_type of membership_types) {
+          res[membership_type.name] = 0;
+        }
         for (let type in res) {
           let members = member_group.getMembersOfType(type);
           for (let member of members) {
@@ -309,7 +345,7 @@ while (true) {
   else if (choice == 7) {
     // delete member
     let query_name = input.question(
-      "\tPlease enter the name of the member to be yeeted: "
+      "\tPlease enter the name of the member to be deleted: "
     );
     let member = member_group.findMember(query_name);
     if (member == -1) {
@@ -319,6 +355,37 @@ while (true) {
       member_group.deleteMember(member);
       console.log("\tSuccess!");
     }
+  } else if (choice == 8) {
+    // add new membership type
+    let query_type = input.question(
+      "\tPlease enter the name of the new membership type: "
+    );
+    // check if the membership type already exist
+    for (let i = 0; i < membership_types.length; i++) {
+      if (membership_types[i].name == query_type.toLowerCase()) {
+        console.log("\tMembership type already exists.");
+        continue;
+      }
+    }
+    let query_points = input.question(
+      "\tPlease enter the points required to reach this membership type: "
+    );
+    if (isNaN(query_points)) {
+      console.log("\tPlease enter a valid number");
+      continue;
+    }
+    query_points = parseFloat(query_points);
+    for (let i = 0; i < membership_types.length; i++) {
+      if (Math.abs(membership_types[i].required_points - query_points) < 2) {
+        console.log("\tDuplicate / Clashing required points.");
+        continue;
+      }
+    }
+
+    membership_types.push({
+      name: query_type.toLowerCase(),
+      required_points: query_points,
+    });
   }
 
   console.log();
