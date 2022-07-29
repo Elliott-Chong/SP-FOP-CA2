@@ -1,5 +1,7 @@
 const input = require("readline-sync");
 
+const MAX_OPTION = 12;
+
 const months = {
   1: "Jan",
   2: "Feb",
@@ -19,6 +21,28 @@ var todays_date = new Date();
 todays_date = `${todays_date.getDate()} ${
   months[todays_date.getMonth()]
 } ${todays_date.getFullYear()}`;
+
+const logWithColor = (string, textRGB, bgRGB, log = true) => {
+  var bgColorFormatter;
+  if (bgRGB) {
+    const [bgr, bgg, bgb] = bgRGB;
+    bgColorFormatter = `\x1b[48;2;${bgr};${bgg};${bgb}m`;
+  }
+  const [r, g, b] = textRGB;
+  let textColorFormatter = `\x1b[38;2;${r};${g};${b}m`;
+  if (log) {
+    console.log(
+      `${textColorFormatter}${bgColorFormatter || ""}%s\x1b[0m`,
+      string
+    );
+  } else {
+    return `${textColorFormatter}${bgColorFormatter || ""}${string}\x1b[0m`;
+  }
+};
+
+const errorLog = (string) => {
+  logWithColor(string, [255, 0, 0], null);
+};
 
 var membership_types = [
   { name: "ruby", required_points: 0 },
@@ -64,7 +88,12 @@ class Member {
     else points = 2000;
     this.points += points;
 
+    this.updateMembershipType();
+
     // update membership_type if needed
+  }
+
+  updateMembershipType() {
     for (let membership_type of membership_types) {
       if (this.points >= membership_type.required_points) {
         this.membership_type = membership_type.name;
@@ -166,15 +195,23 @@ class MemberGroup {
 
 var member_group = new MemberGroup();
 
-console.log("Welcome to XYZ Membership Loyalty Programme!");
-var name = input.question("Please enter your name: ");
+logWithColor("Welcome to XYZ Membership Loyalty Programme!", [99, 173, 242]);
+var name = input.question(
+  logWithColor("Please enter your name: ", [191, 105, 0], null, false)
+);
+// var name = input.question("Please enter your name: ");
 //program loop
 while (true) {
   console.log();
 
   // ask user for choice
   console.log(
-    `Hi ${name}, please select your choice:\n\t1. Display all members' information\n\t2. Display member information\n\t3. Add new member\n\t4. Update points earned\n\t5. Statistics\n\t6. Exit\n\t--------Advanced Features---------\n\t7. Delete member\n\t8. Add new membership type`
+    logWithColor(
+      `Hi ${name}, please select your choice:\n\t1. Display all members' information\n\t2. Display member information\n\t3. Add new member\n\t4. Update points earned\n\t5. Statistics\n\t6. Exit\n\t--------Advanced Features---------\n\t7. Delete member\n\t8. Add new membership type\n\t9. Display all membership types\n\t10. Delete membership type\n\t11. Modify membership type requirement\n\t12. Add points to member`,
+      [99, 173, 242],
+      null,
+      false
+    )
   );
   var choice = input.question("\t>> ");
 
@@ -183,7 +220,7 @@ while (true) {
     isNaN(choice) || // check if it's a number
     parseInt(choice) != choice || // check if it's an integer
     parseInt(choice) < 1 ||
-    parseInt(choice) > 8
+    parseInt(choice) > MAX_OPTION
   ) {
     console.log("Please enter a valid input.");
     continue;
@@ -377,7 +414,7 @@ while (true) {
     query_points = parseFloat(query_points);
     for (let i = 0; i < membership_types.length; i++) {
       if (Math.abs(membership_types[i].required_points - query_points) < 2) {
-        console.log("\tDuplicate / Clashing required points.");
+        errorLog("\tClashing / Duplicate required points.");
         continue;
       }
     }
@@ -386,6 +423,118 @@ while (true) {
       name: query_type.toLowerCase(),
       required_points: query_points,
     });
+  } else if (choice == 9) {
+    // display all membership types and their required points
+    // sort the membership_types by points ascending
+    let sorted_membership_types = [...membership_types].sort(
+      (a, b) => a.required_points - b.required_points
+    );
+    for (let membership_type of sorted_membership_types) {
+      console.log(
+        `\t${membership_type.name} - required points: ${logWithColor(
+          membership_type.required_points,
+          [245, 184, 46],
+          null,
+          false
+        )}`
+      );
+    }
+  } else if (choice == 10) {
+    // delete membership type
+    let query_type = input.question(
+      "Please enter the name of the membership type to be deleted: "
+    );
+    // mt is membership_type
+    var exists = false;
+    for (let mt of membership_types) {
+      // check if the queried type exists in the current membership_types array
+      if (mt.name.toLowerCase() == query_type.toLowerCase()) {
+        exists = true;
+        break;
+      }
+    }
+    if (!exists) {
+      errorLog("The membership type does not currently exist!");
+      continue;
+    }
+    // filter out the membership type from the membership_types array
+    var new_membership_types = new Array();
+    for (let mt of membership_types) {
+      if (mt.name.toLowerCase() != query_type.toLowerCase()) {
+        new_membership_types.push(mt);
+      }
+    }
+    // update
+    membership_types = new_membership_types;
+  } else if (choice == 11) {
+    // modify the required points for a membership type
+
+    let query_type = input.question(
+      "Please enter the name of the membership type to be modified: "
+    );
+    // mt is membership_type
+    var exists = false;
+    for (let mt of membership_types) {
+      // check if the queried type exists in the current membership_types array
+      if (mt.name.toLowerCase() == query_type.toLowerCase()) {
+        exists = true;
+        break;
+      }
+    }
+    if (!exists) {
+      errorLog("The membership type does not currently exist!");
+      continue;
+    }
+
+    // modify
+    let query_points = input.question(
+      "Please enter the new amount of required points to reach this membership type: "
+    );
+    if (isNaN(query_points)) {
+      errorLog("Please enter a valid number");
+      continue;
+    }
+
+    for (let i = 0; i < membership_types.length; i++) {
+      if (
+        Math.abs(membership_types[i].required_points - query_points) < 2 &&
+        membership_types[i].name.toLowerCase() != query_type.toLowerCase()
+      ) {
+        errorLog("Clashing / Duplicate required points.");
+        continue;
+      }
+    }
+
+    query_points = parseFloat(query_points);
+    for (let mt of membership_types) {
+      if (mt.name.toLowerCase() == query_type.toLowerCase()) {
+        mt.required_points = query_points;
+      }
+    }
+  } else if (choice == 12) {
+    // manually add points to a particular person
+
+    let query_member = input.question("Please enter member's name: ");
+    query_member = query_member.toLowerCase();
+    member = member_group.findMember(query_member);
+    if (member == -1) {
+      errorLog("Member does not exist.");
+      continue;
+    }
+
+    let query_points = input.question(
+      "Please enter the amount of points that should be added to " +
+        query_member +
+        ": "
+    );
+    if (isNaN(query_points)) {
+      errorLog("Please enter a valid number");
+      continue;
+    }
+    query_points = parseFloat(query_points);
+
+    member.points += query_points;
+    member.updateMembershipType();
   }
 
   console.log();
