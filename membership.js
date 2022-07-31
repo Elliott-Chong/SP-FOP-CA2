@@ -56,7 +56,7 @@ var member_1 = ["Leonardo", "Gold", "1 Dec 2019", "1 Jan 1980", 1400];
 var member_2 = ["Catherine", "Ruby", "14 Jan 2020", "28 Oct 1985", 250];
 var member_3 = ["Luther", "Gold", "29 Apr 2020", "16 Mar 1992", 3350];
 var member_4 = ["Bruce", "Diamond", "3 Jun 2020", "18 Mar 1994", 40200];
-var member_5 = ["Amy", "Ruby", "5 Jun 2020", "31 May 2000", 500];
+var member_5 = ["Amy", "Gold", "5 Jun 2020", "31 May 2000", 500];
 
 // initializing an array to store all the members
 var memberList = [member_1, member_2, member_3, member_4, member_5];
@@ -94,7 +94,10 @@ class Member {
   }
 
   updateMembershipType() {
-    for (let membership_type of membership_types) {
+    let sorted_membership_types = [...membership_types].sort(
+      (a, b) => a.required_points - b.required_points
+    );
+    for (let membership_type of sorted_membership_types) {
       if (this.points >= membership_type.required_points) {
         this.membership_type = membership_type.name;
       }
@@ -397,10 +400,14 @@ while (true) {
     let query_type = input.question(
       "\tPlease enter the name of the new membership type: "
     );
+    if (!query_type) {
+      errorLog("Please enter a valid name.");
+      continue;
+    }
     // check if the membership type already exist
     for (let i = 0; i < membership_types.length; i++) {
       if (membership_types[i].name == query_type.toLowerCase()) {
-        console.log("\tMembership type already exists.");
+        errorLog("\tMembership type already exists.");
         continue;
       }
     }
@@ -408,7 +415,7 @@ while (true) {
       "\tPlease enter the points required to reach this membership type: "
     );
     if (isNaN(query_points)) {
-      console.log("\tPlease enter a valid number");
+      errorLog("\tPlease enter a valid number");
       continue;
     }
     query_points = parseFloat(query_points);
@@ -423,6 +430,9 @@ while (true) {
       name: query_type.toLowerCase(),
       required_points: query_points,
     });
+    for (let member of member_group.members) {
+      member.updateMembershipType();
+    }
   } else if (choice == 9) {
     // display all membership types and their required points
     // sort the membership_types by points ascending
@@ -490,7 +500,7 @@ while (true) {
     let query_points = input.question(
       "Please enter the new amount of required points to reach this membership type: "
     );
-    if (isNaN(query_points)) {
+    if (isNaN(query_points) || !query_points) {
       errorLog("Please enter a valid number");
       continue;
     }
@@ -527,7 +537,7 @@ while (true) {
         query_member +
         ": "
     );
-    if (isNaN(query_points)) {
+    if (isNaN(query_points) || !query_points) {
       errorLog("Please enter a valid number");
       continue;
     }
