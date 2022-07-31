@@ -79,6 +79,7 @@ class Member {
 
   earnPoints(money_spent) {
     var points;
+
     if (money_spent <= 50) points = 10;
     else if (money_spent <= 100) points = 50;
     else if (money_spent <= 200) points = 100;
@@ -277,11 +278,15 @@ while (true) {
       continue;
     } else {
       let amount_spent = input.question("Please enter amount spent: ");
-      if (isNaN(amount_spent)) {
-        console.log("Please enter a valid number.");
+      if (isNaN(amount_spent) || !amount_spent) {
+        errorLog("Please enter a valid number.");
         continue;
       }
       amount_spent = parseFloat(amount_spent);
+      if (amount_spent < 0) {
+        errorLog("Please enter a valid number.");
+        continue;
+      }
       member.earnPoints(amount_spent);
     }
   } else if (choice == 5) {
@@ -414,11 +419,15 @@ while (true) {
     let query_points = input.question(
       "\tPlease enter the points required to reach this membership type: "
     );
-    if (isNaN(query_points)) {
+    if (isNaN(query_points) || !query_points) {
       errorLog("\tPlease enter a valid number");
       continue;
     }
     query_points = parseFloat(query_points);
+    if (query_points < 0) {
+      errorLog("\tPlease enter a valid amount of points.");
+      continue;
+    }
     for (let i = 0; i < membership_types.length; i++) {
       if (Math.abs(membership_types[i].required_points - query_points) < 2) {
         errorLog("\tClashing / Duplicate required points.");
@@ -505,6 +514,11 @@ while (true) {
       continue;
     }
 
+    if (query_points < 0) {
+      errorLog("Please enter a valid amount of points.");
+      continue;
+    }
+
     for (let i = 0; i < membership_types.length; i++) {
       if (
         Math.abs(membership_types[i].required_points - query_points) < 2 &&
@@ -541,6 +555,7 @@ while (true) {
       errorLog("Please enter a valid number");
       continue;
     }
+
     query_points = parseFloat(query_points);
 
     member.points += query_points;
